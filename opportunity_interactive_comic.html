@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101027">
+<title>Opportunity — The Little Rover That Refused to Quit</title>
+<style>
+  :root {
+    --ink: #111126;
+    --night: #090a1b;
+    --violet: #29204d;
+    --pink: #ff8fc8;
+    --cyan: #8deaff;
+    --gold: #ffd58a;
+    --paper: #fffaf0;
+    --page-w: min(42vw, 430px);
+    --page-h: min(59vw, 590px);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    color: #fff;
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(100,73,166,.35), transparent 42%),
+      radial-gradient(ellipse at 15% 80%, rgba(255,143,200,.12), transparent 35%),
+      linear-gradient(145deg, #080918, #17132f 55%, #090a1b);
+    overflow-x: hidden;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .65;
+    background-image:
+      radial-gradient(1px 1px at 8% 17%, #fff 98%, transparent),
+      radial-gradient(2px 2px at 23% 73%, #a8eaff 98%, transparent),
+      radial-gradient(1px 1px at 46% 13%, #fff 98%, transparent),
+      radial-gradient(2px 2px at 69% 31%, #ffd58a 98%, transparent),
+      radial-gradient(1px 1px at 83% 78%, #fff 98%, transparent),
+      radial-gradient(1px 1px at 92% 12%, #ffb8dc 98%, transparent);
+    background-size: 360px 280px;
+    animation: starDrift 35s linear infinite;
+  }
+  @keyframes starDrift { to { transform: translate3d(-50px, 35px, 0); } }
+  .site-header {
+    width: min(1200px, 94vw); margin: auto; padding: 25px 0 8px;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  }
+  .brand { font-weight: 900; letter-spacing: .16em; font-size: .78rem; color: var(--cyan); }
+  .brand span { color: var(--pink); }
+  .header-note { color: #c7c1e5; font-size: .78rem; letter-spacing: .08em; }
+  main { width: min(1200px, 96vw); margin: auto; text-align: center; padding: 22px 0 35px; }
+  .eyebrow { color: var(--pink); letter-spacing: .28em; text-transform: uppercase; font-size: .7rem; font-weight: 800; }
+  h1 {
+    margin: 10px 0 8px; font-size: clamp(1.65rem, 4vw, 3.4rem);
+    line-height: 1.05; letter-spacing: -.035em;
+    text-shadow: 0 4px 30px rgba(255,143,200,.2);
+  }
+  h1 em { color: var(--gold); font-style: normal; }
+  .subtitle { color: #d2cde9; margin: 0 auto 22px; max-width: 620px; line-height: 1.6; font-size: .94rem; }
+  .stage {
+    min-height: 610px; display: flex; align-items: center; justify-content: center;
+    perspective: 1800px; position: relative; padding: 20px 0 12px;
+  }
+  .stage::before {
+    content: ""; position: absolute; width: min(70vw, 650px); height: 90px;
+    bottom: 28px; border-radius: 50%;
+    background: rgba(0,0,0,.55); filter: blur(30px);
+    transform: rotateX(70deg); pointer-events: none;
+  }
+  .book-float { position: relative; animation: floatBook 5s ease-in-out infinite; transform-style: preserve-3d; }
+  @keyframes floatBook {
+    0%,100% { transform: translateY(0) rotateX(2deg) rotateZ(-.6deg); }
+    50% { transform: translateY(-15px) rotateX(4deg) rotateZ(.6deg); }
+  }
+  .book {
+    position: relative; width: var(--page-w); height: var(--page-h);
+    min-width: 270px; min-height: 380px; max-width: 860px; max-height: 590px;
+    transform-style: preserve-3d; filter: drop-shadow(0 25px 35px rgba(0,0,0,.48));
+    user-select: none; touch-action: pan-y;
+  }
+  .book::after {
+    content: ""; position: absolute; z-index: -1; top: 7px; bottom: -7px; right: -13px;
+    width: 15px; border-radius: 0 7px 7px 0;
+    background: repeating-linear-gradient(90deg,#d8d0bf 0 2px,#fff8e9 2px 4px);
+    transform: translateZ(-5px);
+  }
+  .page {
+    position: absolute; inset: 0; transform-origin: left center;
+    transform-style: preserve-3d; transition: transform 850ms cubic-bezier(.2,.72,.15,1);
+    border-radius: 5px 12px 12px 5px; cursor: pointer;
+  }
+  .page.turned { transform: rotateY(-180deg); }
+  .face {
+    position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden;
+    background: var(--paper); color: #241d36; border: 1px solid rgba(255,255,255,.35);
+    border-radius: 5px 12px 12px 5px;
+  }
+  .face.back { transform: rotateY(180deg); background: #f4eddf; }
+  .face img { width: 100%; height: 100%; display: block; object-fit: cover; pointer-events: none; }
+  .page-number {
+    position: absolute; bottom: 12px; right: 16px; color: #655b70;
+    font-size: 11px; letter-spacing: .12em; z-index: 2;
+    background: rgba(255,250,240,.75); padding: 4px 7px; border-radius: 20px;
+  }
+  .placeholder {
+    width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;
+    padding: 9%; text-align: left; position: relative; overflow: hidden;
+    background:
+      radial-gradient(circle at 80% 20%, rgba(255,255,255,.75), transparent 22%),
+      linear-gradient(155deg, #ffd8e9 0%, #e7d9ff 46%, #b8eaff 100%);
+  }
+  .placeholder::before {
+    content: ""; position: absolute; width: 70%; aspect-ratio: 1; border-radius: 50%;
+    right: -20%; bottom: 7%; background: rgba(255,255,255,.35); filter: blur(2px);
+  }
+  .placeholder::after {
+    content: "✦  ✧  ·  ✦"; position: absolute; right: 8%; top: 12%;
+    color: rgba(88,69,130,.5); font-size: 1.2rem; letter-spacing: .5em;
+  }
+  .placeholder .p-kicker { color: #6f568c; font-size: .58rem; font-weight: 900; letter-spacing: .22em; text-transform: uppercase; }
+  .placeholder h2 { font-size: clamp(1.3rem, 3vw, 2.2rem); line-height: 1.05; margin: 12px 0; max-width: 90%; color: #302345; }
+  .placeholder p { color: #493e5d; font-size: clamp(.68rem, 1.15vw, .9rem); line-height: 1.55; max-width: 90%; }
+  .placeholder .rover-art { align-self: center; font-size: clamp(4rem, 10vw, 7rem); filter: drop-shadow(0 12px 8px rgba(56,42,87,.2)); }
+  .placeholder .p-foot { color: #6f568c; font-size: .6rem; letter-spacing: .12em; font-weight: 800; }
+  .cover .placeholder { background: linear-gradient(155deg,#211944,#4b397d 55%,#f49ac8); color: white; }
+  .cover .placeholder h2, .cover .placeholder p, .cover .placeholder .p-kicker, .cover .placeholder .p-foot { color: white; }
+  .cover .placeholder h2 { font-size: clamp(1.5rem, 3.4vw, 2.8rem); text-shadow: 0 4px 20px rgba(0,0,0,.25); }
+  .cover .placeholder .rover-art { font-size: clamp(5rem, 12vw, 8rem); }
+  .spine {
+    position: absolute; top: 0; bottom: 0; left: -8px; width: 16px; z-index: 20;
+    background: linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.25),rgba(0,0,0,.15));
+    transform: translateZ(2px); pointer-events: none;
+  }
+  .controls { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; margin: 8px auto 0; }
+  button {
+    border: 1px solid rgba(255,255,255,.22); color: white; cursor: pointer;
+    background: linear-gradient(135deg,rgba(255,143,200,.22),rgba(141,234,255,.13));
+    padding: 11px 19px; border-radius: 999px; font-weight: 800; letter-spacing: .04em;
+    transition: transform .2s, background .2s, opacity .2s; backdrop-filter: blur(10px);
+  }
+  button:hover { transform: translateY(-2px); background: rgba(255,143,200,.3); }
+  button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+  .counter { min-width: 112px; color: #e8dffb; font-size: .8rem; letter-spacing: .14em; }
+  .hint { color: #aaa4c9; font-size: .75rem; margin: 15px 0 0; }
+  .progress { width: min(260px,65vw); height: 3px; margin: 14px auto 0; background: rgba(255,255,255,.13); border-radius: 9px; overflow: hidden; }
+  .progress span { display: block; height: 100%; width: 0; background: linear-gradient(90deg,var(--pink),var(--cyan)); transition: width .4s; }
+  .footer { color: #77718f; font-size: .68rem; letter-spacing: .12em; padding: 30px 10px 20px; }
+  .fullscreen { font-size: .75rem; padding: 9px 14px; }
+  @media (max-width: 650px) {
+    :root { --page-w: 78vw; --page-h: 112vw; }
+    .stage { min-height: calc(112vw + 100px); padding-top: 12px; }
+    .book { min-width: 0; min-height: 0; }
+    .header-note { display: none; }
+    .site-header { padding-top: 18px; }
+    .subtitle { font-size: .82rem; padding: 0 10px; }
+    .controls { gap: 8px; }
+    button { padding: 10px 14px; font-size: .76rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,*::before,*::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="brand">STARRY <span>INK</span> · COMIC READER</div>
+  <div class="header-note">AN INTERACTIVE DIGITAL COMIC EXPERIENCE</div>
+</header>
+
+<main>
+  <div class="eyebrow">A journey beyond the stars</div>
+  <h1>THE LITTLE ROVER<br><em>THAT REFUSED TO QUIT</em></h1>
+  <p class="subtitle">Opportunity: My 15-Year Journey Across Mars. Open the book, turn the pages and follow a little rover's extraordinary adventure.</p>
+
+  <section class="stage" aria-label="Interactive comic book">
+    <div class="book-float" id="floatWrap">
+      <div class="book" id="book" aria-label="Comic book. Use the buttons, click, drag or swipe to turn pages.">
+        <div class="spine"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <button id="prevBtn" type="button" aria-label="Previous page">← Previous</button>
+    <div class="counter" id="counter">COVER / 08</div>
+    <button id="nextBtn" type="button" aria-label="Next page">Next →</button>
+    <button class="fullscreen" id="fullBtn" type="button">⛶ Fullscreen</button>
+  </div>
+  <div class="progress"><span id="progressBar"></span></div>
+  <p class="hint">Click the page edge · Drag the page · Swipe on mobile</p>
+</main>
+
+<footer class="footer">MADE FOR CURIOUS MINDS · EXPLORE · DISCOVER · NEVER GIVE UP</footer>
+
+<script>
+/*
+  HOW TO ADD YOUR OWN COMIC PAGES
+  1. Put your exported comic images in a folder named "images".
+  2. Replace the image value in the pages array below, e.g. "images/page01.jpg".
+  3. Keep the cover first and arrange the remaining pages in reading order.
+  4. Recommended: JPG or PNG, portrait pages, same dimensions (e.g. 1400 × 2000).
+  5. If an image path is empty or the file is missing, a designed placeholder appears.
+*/
+const pages = [
+  { title: "The Little Rover That Refused to Quit", text: "Opportunity · My 15-Year Journey Across Mars", art: "🚀", image: "" },
+  { title: "A Mission Begins", text: "Earth, 2003. A little rover is being prepared for a journey across millions of kilometres of space.", art: "🛰️", image: "" },
+  { title: "A New World", text: "After a long voyage, Opportunity reaches Mars. A strange red world waits beyond the landing site.", art: "🔴", image: "" },
+  { title: "A Question in the Dust", text: "Was Mars once a wetter world? Opportunity begins searching for clues written in ancient rocks.", art: "🪨", image: "" },
+  { title: "One Sol at a Time", text: "The mission keeps going. Each new image and measurement adds another piece to the story of Mars.", art: "🔭", image: "" },
+  { title: "Farther Than Expected", text: "The rover travels across the Martian landscape, exploring far beyond its original planned mission.", art: "🛞", image: "" },
+  { title: "The Dusty Sky", text: "In 2018, a planet-wide dust storm darkens the sky. The little explorer faces its greatest challenge.", art: "🌪️", image: "" },
+  { title: "A Journey Remembered", text: "Opportunity's last communication arrives in June 2018. Its mission is declared complete in February 2019. The journey leaves a lasting legacy.", art: "✨", image: "" }
+];
+
+const book = document.getElementById("book");
+const counter = document.getElementById("counter");
+const progressBar = document.getElementById("progressBar");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+let current = 0;
+let dragging = false;
+let startX = 0;
+let dragDelta = 0;
+
+function makeFace(item, number, isCover=false, isBack=false) {
+  const face = document.createElement("div");
+  face.className = "face" + (isBack ? " back" : "");
+  if (item.image) {
+    const img = document.createElement("img");
+    img.src = item.image;
+    img.alt = item.title || "Comic page";
+    img.onerror = () => {
+      img.remove();
+      face.appendChild(makePlaceholder(item, number, isCover));
+    };
+    face.appendChild(img);
+  } else {
+    face.appendChild(makePlaceholder(item, number, isCover));
+  }
+  if (!isCover) {
+    const label = document.createElement("span");
+    label.className = "page-number";
+    label.textContent = String(number).padStart(2, "0");
+    face.appendChild(label);
+  }
+  return face;
+}
+
+function makePlaceholder(item, number, isCover) {
+  const panel = document.createElement("div");
+  panel.className = "placeholder";
+  panel.innerHTML = `
+    <div>
+      <div class="p-kicker">${isCover ? "AN ORIGINAL MARS ADVENTURE" : "OPPORTUNITY · MARS EXPLORATION"}</div>
+      <h2>${item.title}</h2>
+      <p>${item.text}</p>
+    </div>
+    <div class="rover-art" aria-hidden="true">${item.art || "✦"}</div>
+    <div class="p-foot">${isCover ? "TURN THE PAGE TO BEGIN  →" : "THE LITTLE ROVER THAT REFUSED TO QUIT"}</div>`;
+  return panel;
+}
+
+// A cover plus page leaves. Each leaf has a front and reverse side.
+pages.forEach((item, index) => {
+  const leaf = document.createElement("div");
+  leaf.className = "page" + (index === 0 ? " cover" : "");
+  leaf.style.zIndex = String(pages.length - index);
+  leaf.dataset.index = index;
+  leaf.appendChild(makeFace(item, index, index === 0, false));
+  const reverseItem = pages[index + 1] || {
+    title: "The End — and a Beginning", text: "A small rover helped humanity see Mars in a new way. Its journey continues through every discovery it made.", art: "🌌", image: ""
+  };
+  leaf.appendChild(makeFace(reverseItem, index + 1, false, true));
+  book.appendChild(leaf);
+});
+
+const leaves = [...document.querySelectorAll(".page")];
+
+function updateUI() {
+  const total = pages.length;
+  counter.textContent = `${current === 0 ? "COVER" : "PAGE " + String(current).padStart(2,"0")} / ${String(total-1).padStart(2,"0")}`;
+  prevBtn.disabled = current <= 0;
+  nextBtn.disabled = current >= total - 1;
+  progressBar.style.width = `${(current / (total - 1)) * 100}%`;
+  leaves.forEach((leaf, i) => {
+    const turned = i < current;
+    leaf.classList.toggle("turned", turned);
+    leaf.style.zIndex = turned ? String(i + 1) : String(pages.length - i);
+  });
+}
+function nextPage() { if (current < pages.length - 1) { current++; updateUI(); } }
+function prevPage() { if (current > 0) { current--; updateUI(); } }
+nextBtn.addEventListener("click", nextPage);
+prevBtn.addEventListener("click", prevPage);
+
+// Clicking the right or left half of the book turns a page.
+book.addEventListener("click", (event) => {
+  if (Math.abs(dragDelta) > 12) return;
+  const rect = book.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  if (x > rect.width * .52) nextPage();
+  else prevPage();
+});
+
+// Drag and touch swipe support.
+book.addEventListener("pointerdown", (event) => {
+  dragging = true; startX = event.clientX; dragDelta = 0;
+  book.setPointerCapture(event.pointerId);
+});
+book.addEventListener("pointermove", (event) => {
+  if (!dragging) return;
+  dragDelta = event.clientX - startX;
+});
+book.addEventListener("pointerup", () => {
+  if (!dragging) return;
+  dragging = false;
+  if (dragDelta < -35) nextPage();
+  if (dragDelta > 35) prevPage();
+  setTimeout(() => dragDelta = 0, 80);
+});
+book.addEventListener("pointercancel", () => { dragging = false; dragDelta = 0; });
+
+document.getElementById("fullBtn").addEventListener("click", async () => {
+  try {
+    if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+    else await document.exitFullscreen();
+  } catch (error) {
+    alert("Fullscreen is not available in this browser.");
+  }
+});
+
+updateUI();
+</script>
+</body>
+</html>
